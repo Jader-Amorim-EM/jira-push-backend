@@ -22,6 +22,17 @@ import express from "express";
 import cors from "cors";
 import pushRoutes from "./routes/push.routes.js";
 import jiraRoutes from "./routes/jira.routes.js";
+import cors from "cors";
+
+app.use(cors({
+  origin: [
+    "https://verdant-kataifi-54c458.netlify.app",
+    "http://localhost:3000"
+  ],
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"]
+}));
+
 
 const app = express();
 
