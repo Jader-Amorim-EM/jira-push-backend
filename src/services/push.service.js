@@ -66,11 +66,20 @@ export async function sendNotification(payload) {
 
   const subscriptions = loadSubscriptions();
   console.log("Subscriptions ativas:", subscriptions.length);
+  console.log("Payload enviado:", payload);
+
+  const message = JSON.stringify({
+    title: payload.title,
+    body: payload.body,
+    issueKey: payload.issueKey,
+    jiraBaseUrl: payload.jiraBaseUrl
+  });
 
   const promises = subscriptions.map(sub =>
-    webpush.sendNotification(sub, JSON.stringify(payload))
+    webpush.sendNotification(sub, message)
       .catch(err => console.error("Erro no push:", err))
   );
 
   await Promise.all(promises);
 }
+
