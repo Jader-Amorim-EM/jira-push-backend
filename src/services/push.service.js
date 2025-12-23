@@ -83,3 +83,17 @@ export async function sendNotification(payload) {
   await Promise.all(promises);
 }
 
+export async function sendPush(subscription, issue) {
+  const payload = {
+    title: `Jira: ${issue.key}`,
+    body: `${issue.summary} (${issue.eventType})`,
+    issueKey: issue.key,
+    jiraBaseUrl: "https://escolarmanager.atlassian.net"
+  };
+
+  await webpush.sendNotification(
+    subscription,
+    JSON.stringify(payload)
+  );
+}
+
