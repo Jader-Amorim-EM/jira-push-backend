@@ -32,8 +32,8 @@ const app = express();
 ================================ */
 app.use(cors({
   origin: [
-    "https://verdant-kataifi-54c458.netlify.app",
-    "http://localhost:3000"
+    "https://jader-amorim-em.github.io",
+    "https://jader-amorim-em.github.io/jira-notifier-frontend"
   ],
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type"]
