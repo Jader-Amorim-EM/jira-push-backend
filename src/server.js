@@ -1,7 +1,11 @@
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import express from "express";
+import cors from "cors";
 
+import pushRoutes from "./routes/push.routes.js";
+import jiraRoutes from "./routes/jira.routes.js";
 
 /* ==============================
    RESOLVER PATH DA RAIZ
@@ -18,12 +22,14 @@ dotenv.config({
 ================================ */
 console.log("VAPID_SUBJECT =>", process.env.VAPID_SUBJECT);
 
-import express from "express";
-import cors from "cors";
-import pushRoutes from "./routes/push.routes.js";
-import jiraRoutes from "./routes/jira.routes.js";
-import cors from "cors";
+/* ==============================
+   APP
+================================ */
+const app = express();
 
+/* ==============================
+   CORS
+================================ */
 app.use(cors({
   origin: [
     "https://verdant-kataifi-54c458.netlify.app",
@@ -33,24 +39,24 @@ app.use(cors({
   allowedHeaders: ["Content-Type"]
 }));
 
-
-const app = express();
-
-app.use(cors());
+/* ==============================
+   MIDDLEWARES
+================================ */
 app.use(express.json());
 
+/* ==============================
+   ROTAS
+================================ */
 app.use("/push", pushRoutes);
-
 app.use("/webhook", jiraRoutes);
 
 app.get("/health", (_, res) => res.send("OK"));
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log("Servidor rodando na porta", process.env.PORT);
-});
-
+/* ==============================
+   START SERVER
+================================ */
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
-
