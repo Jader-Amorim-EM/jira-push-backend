@@ -5,17 +5,11 @@ const router = express.Router();
 
 router.post("/jira", async (req, res) => {
   try {
+    const jiraPayload = req.body;
 
-    const issueKey = payload.issue?.key;
-    const summary = payload.issue?.fields?.summary;
-    const eventType = payload.webhookEvent;
-    
-    const payload = {
-      title: `Jira: ${issueKey}`,
-      body: `${summary} (${eventType})`,
-      issueKey,
-      jiraBaseUrl: "https://escolarmanager.atlassian.net"
-    }; 
+    const issueKey = jiraPayload.issue?.key;
+    const summary = jiraPayload.issue?.fields?.summary;
+    const eventType = jiraPayload.webhookEvent;
 
     if (!issueKey) {
       return res.status(200).json({ message: "Evento ignorado" });
@@ -26,7 +20,9 @@ router.post("/jira", async (req, res) => {
     await sendNotification({
       title: `Jira: ${issueKey}`,
       body: `${summary || "Issue atualizada"} (${eventType})`,
-      url: `https://SEU_DOMINIO.atlassian.net/browse/${issueKey}`
+      issueKey,
+      jiraBaseUrl: "https://escolarmanager.atlassian.net",
+      url: `https://escolarmanager.atlassian.net/browse/${issueKey}`
     });
 
     res.status(200).json({ message: "Notificação enviada" });
@@ -36,4 +32,4 @@ router.post("/jira", async (req, res) => {
   }
 });
 
-export default router;   // 👈 ESSA LINHA É OBRIGATÓRIA
+export default router;

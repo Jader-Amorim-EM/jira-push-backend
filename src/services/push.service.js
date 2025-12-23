@@ -1,21 +1,22 @@
+import webpush from "web-push";
 import fs from "fs";
 import path from "path";
-import webpush from "web-push";
 import { fileURLToPath } from "url";
 
+/* ==============================
+   PATH
+================================ */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const SUBSCRIPTIONS_FILE = path.join(__dirname, "../../data/subscriptions.json");
 
-// Caminho do arquivo
-const DATA_FILE = path.resolve(__dirname, "../../data/subscriptions.json");
+let vapidInitialized = false;
 
-// ==============================
-// VAPID
-// ==============================
-let initialized = false;
-
+/* ==============================
+   INIT WEB PUSH
+================================ */
 export function initWebPush() {
-  if (initialized) return;
+  if (vapidInitialized) return;
 
   webpush.setVapidDetails(
     process.env.VAPID_SUBJECT,
@@ -23,71 +24,36 @@ export function initWebPush() {
     process.env.VAPID_PRIVATE_KEY
   );
 
-  initialized = true;
+  vapidInitialized = true;
 }
 
-// ==============================
-// SUBSCRIPTIONS (PERSISTENTES)
-// ==============================
-function loadSubscriptions() {
-  try {
-    if (!fs.existsSync(DATA_FILE)) {
-      fs.writeFileSync(DATA_FILE, "[]");
-    }
-
-    const data = fs.readFileSync(DATA_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch (err) {
-    console.error("Erro ao carregar subscriptions:", err);
-    return [];
-  }
-}
-
-function saveSubscriptions(subscriptions) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(subscriptions, null, 2));
-}
-
+/* ==============================
+   SUBSCRIPTIONS
+================================ */
 export function addSubscription(subscription) {
-  const subscriptions = loadSubscriptions();
+  let subs = [];
 
-  const exists = subscriptions.find(
-    s => s.endpoint === subscription.endpoint
-  );
-
-  if (!exists) {
-    subscriptions.push(subscription);
-    saveSubscriptions(subscriptions);
-    console.log("Subscription salva no disco");
-  }
-}
-
-export async function sendPushNotification(subscription, payload) {
-  if (!payload?.issueKey || !payload?.jiraBaseUrl) {
-    console.warn("Push ignorado: payload incompleto", payload);
-    return;
+  if (fs.existsSync(SUBSCRIPTIONS_FILE)) {
+    subs = JSON.parse(fs.readFileSync(SUBSCRIPTIONS_FILE));
   }
 
-  const message = JSON.stringify({
-    title: payload.title ?? "Jira",
-    body: payload.body ?? "",
-    issueKey: payload.issueKey,
-    jiraBaseUrl: payload.jiraBaseUrl
-  });
-
-  await webpush.sendNotification(subscription, message);
+  subs.push(subscription);
+  fs.writeFileSync(SUBSCRIPTIONS_FILE, JSON.stringify(subs, null, 2));
 }
 
-export async function sendPush(subscription, issue) {
-  const payload = {
-    title: `Jira: ${issue.key}`,
-    body: `${issue.summary} (${issue.eventType})`,
-    issueKey: issue.key,
-    jiraBaseUrl: "https://escolarmanager.atlassian.net"
-  };
+/* ==============================
+   SEND NOTIFICATION
+================================ */
+export async function sendNotification(payload) {
+  if (!fs.existsSync(SUBSCRIPTIONS_FILE)) return;
 
-  await webpush.sendNotification(
-    subscription,
-    JSON.stringify(payload)
-  );
+  const subs = JSON.parse(fs.readFileSync(SUBSCRIPTIONS_FILE));
+
+  for (const sub of subs) {
+    try {
+      await webpush.sendNotification(sub, JSON.stringify(payload));
+    } catch (err) {
+      console.error("Erro ao enviar push:", err.message);
+    }
+  }
 }
-
