@@ -5,11 +5,17 @@ const router = express.Router();
 
 router.post("/jira", async (req, res) => {
   try {
-    const payload = req.body;
 
     const issueKey = payload.issue?.key;
     const summary = payload.issue?.fields?.summary;
     const eventType = payload.webhookEvent;
+    
+    const payload = {
+      title: `Jira: ${issueKey}`,
+      body: `${summary} (${eventType})`,
+      issueKey,
+      jiraBaseUrl: "https://escolarmanager.atlassian.net"
+    }; 
 
     if (!issueKey) {
       return res.status(200).json({ message: "Evento ignorado" });
