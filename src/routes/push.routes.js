@@ -32,3 +32,18 @@ router.post("/notify", async (req, res) => {
 });
 
 export default router;
+
+/* ==============================
+   PAUSAR DE NOTIFICAÇÃO
+================================ */
+router.post("/unsubscribe", async (req, res) => {
+  const subscription = req.body;
+
+  if (!subscription?.endpoint) {
+    return res.status(400).json({ error: "Subscription inválida" });
+  }
+
+  removeSubscription(subscription.endpoint);
+
+  res.json({ success: true });
+});
