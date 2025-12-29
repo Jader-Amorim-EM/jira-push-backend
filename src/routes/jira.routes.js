@@ -4,6 +4,11 @@ import { sendNotification } from "../services/push.service.js";
 const router = express.Router();
 
 router.post("/webhook", async (req, res) => {
+  
+  try {
+
+  initWebPush();
+  
   const { webhookEvent, issue, changelog, user } = req.body;
 
   if (!issue) {
@@ -31,6 +36,10 @@ router.post("/webhook", async (req, res) => {
   await sendNotification(payload);
 
   res.sendStatus(200);
+  } catch (err) {
+    console.error("Erro ao processar webhook Jira:", err);
+    res.sendStatus(500);
+  }
 });
 
 /* ======================================================
