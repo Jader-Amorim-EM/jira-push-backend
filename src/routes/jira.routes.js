@@ -14,29 +14,16 @@ router.post("/webhook", async (req, res) => {
   const summary = issue.fields?.summary || "Sem resumo";
   const author = user?.displayName || "Alguém";
 
-  let description = "Atualização sem detalhes";
-
-  // 🔹 Se for update e tiver changelog
-  if (webhookEvent === "jira:issue_updated" && changelog?.items?.length) {
-    const changes = changelog.items.map(item => {
-      if (item.field === "status") {
-        return `Status: ${item.fromString} → ${item.toString}`;
-      }
-
-      if (item.field === "assignee") {
-        return `Responsável: ${item.fromString || "Ninguém"} → ${item.toString || "Ninguém"}`;
-      }
-
-      return `${item.field}: ${item.fromString} → ${item.toString}`;
-    });
-
-    description = changes.join(" | ");
-  }
+  // ✅ Usa função centralizada
+  const description =
+    webhookEvent === "jira:issue_updated"
+      ? buildChangeDescription(changelog, author)
+      : `${author} realizou uma ação na issue`;
 
   const payload = {
     title: `Jira: ${issueKey}`,
-    body: `${author} atualizou a issue`,
-    description,              // 👈 agora o histórico fica rico
+    body: summary,
+    description,
     issueKey,
     timestamp: Date.now()
   };
@@ -46,28 +33,31 @@ router.post("/webhook", async (req, res) => {
   res.sendStatus(200);
 });
 
-
+/* ======================================================
+   FUNÇÃO CENTRALIZADA PARA DESCREVER ALTERAÇÕES
+====================================================== */
 function buildChangeDescription(changelog, author) {
   if (!changelog?.items?.length) {
     return `${author} realizou uma atualização (sem detalhes)`;
   }
 
-  return changelog.items.map(item => {
-    switch (item.field) {
-      case "status":
-        return `${author} alterou o status: ${item.fromString} → ${item.toString}`;
+  return changelog.items
+    .map(item => {
+      switch (item.field) {
+        case "status":
+          return `${author} alterou o status: ${item.fromString} → ${item.toString}`;
 
-      case "assignee":
-        return `${author} alterou o responsável: ${item.fromString || "Ninguém"} → ${item.toString || "Ninguém"}`;
+        case "assignee":
+          return `${author} alterou o responsável: ${item.fromString || "Ninguém"} → ${item.toString || "Ninguém"}`;
 
-      case "priority":
-        return `${author} alterou a prioridade: ${item.fromString} → ${item.toString}`;
+        case "priority":
+          return `${author} alterou a prioridade: ${item.fromString} → ${item.toString}`;
 
-      default:
-        return `${author} alterou ${item.field}: ${item.fromString || "-"} → ${item.toString || "-"}`;
-    }
-  }).join(" | ");
+        default:
+          return `${author} alterou ${item.field}: ${item.fromString || "-"} → ${item.toString || "-"}`;
+      }
+    })
+    .join(" | ");
 }
-
 
 export default router;
