@@ -18,6 +18,10 @@ router.post("/jira", async (req, res) => {
       changelog?.histories?.[0]?.author?.displayName || "Alguém";
 
     const changes = [];
+    const description = buildChangeDescription(
+      webhookEvent.changelog,
+      author
+    );
 
     if (changelog?.histories?.length) {
       changelog.histories[0].items.forEach(item => {
@@ -31,7 +35,7 @@ router.post("/jira", async (req, res) => {
 
     const payload = {
       title: `Jira: ${issueKey}`,
-      body: `${issueTitle}`,
+      body: description,
       issueKey,
       author,
       changes,
@@ -45,6 +49,31 @@ router.post("/jira", async (req, res) => {
     console.error("Erro webhook Jira:", err);
     res.status(500).json({ error: "Erro interno" });
   }
+
+  
 });
+
+function buildChangeDescription(changelog, author) {
+  if (!changelog?.items?.length) {
+    return `${author} realizou uma atualização (sem detalhes)`;
+  }
+
+  return changelog.items.map(item => {
+    switch (item.field) {
+      case "status":
+        return `${author} alterou o status: ${item.fromString} → ${item.toString}`;
+
+      case "assignee":
+        return `${author} alterou o responsável: ${item.fromString || "Ninguém"} → ${item.toString || "Ninguém"}`;
+
+      case "priority":
+        return `${author} alterou a prioridade: ${item.fromString} → ${item.toString}`;
+
+      default:
+        return `${author} alterou ${item.field}: ${item.fromString || "-"} → ${item.toString || "-"}`;
+    }
+  }).join(" | ");
+}
+
 
 export default router;
