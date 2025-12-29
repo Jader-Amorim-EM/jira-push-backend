@@ -57,3 +57,11 @@ export async function sendNotification(payload) {
     }
   }
 }
+
+export function removeSubscription(subscription) {
+  // Exemplo: se estiver em memória
+  subscriptions = subscriptions.filter(
+    sub => sub.endpoint !== subscription.endpoint
+  );
+}
+
