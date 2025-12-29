@@ -58,10 +58,14 @@ export async function sendNotification(payload) {
   }
 }
 
-export function removeSubscription(subscription) {
-  // Exemplo: se estiver em memória
-  subscriptions = subscriptions.filter(
-    sub => sub.endpoint !== subscription.endpoint
-  );
+export function removeSubscription(endpoint) {
+  if (!fs.existsSync(SUBSCRIPTIONS_FILE)) return;
+
+  const subs = JSON.parse(fs.readFileSync(SUBSCRIPTIONS_FILE));
+
+  const filtered = subs.filter(sub => sub.endpoint !== endpoint);
+
+  fs.writeFileSync(SUBSCRIPTIONS_FILE, JSON.stringify(filtered, null, 2));
 }
+
 

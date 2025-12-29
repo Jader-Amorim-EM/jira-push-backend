@@ -6,14 +6,14 @@ const router = express.Router();
 router.post("/webhook", async (req, res) => {
   
   try {
-
-  initWebPush();
   
   const { webhookEvent, issue, changelog, user } = req.body;
 
   if (!issue) {
     return res.status(400).send("Payload inválido");
   }
+
+  initWebPush();
 
   const issueKey = issue.key;
   const summary = issue.fields?.summary || "Sem resumo";
