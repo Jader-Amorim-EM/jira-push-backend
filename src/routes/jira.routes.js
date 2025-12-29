@@ -1,34 +1,58 @@
 import express from "express";
-import { sendNotification, initWebPush } from "../services/push.service.js";
+import { sendNotification } from "../services/push.service.js";
 
 const router = express.Router();
 
+/* ==============================
+   WEBHOOK JIRA
+================================ */
 router.post("/jira", async (req, res) => {
   try {
-    const jiraPayload = req.body;
+    const event = req.body;
+    const issue = event.issue;
+    const changelog = event.changelog;
 
-    const issueKey = jiraPayload.issue?.key;
-    const summary = jiraPayload.issue?.fields?.summary;
-    const eventType = jiraPayload.webhookEvent;
-
-    if (!issueKey) {
-      return res.status(200).json({ message: "Evento ignorado" });
+    if (!issue) {
+      return res.status(400).send("Evento inválido");
     }
 
-    initWebPush();
+    const issueKey = issue.key;
+    const issueSummary = issue.fields?.summary || "";
+    const jiraBaseUrl = process.env.JIRA_BASE_URL;
 
-    await sendNotification({
+    /* ==============================
+       EXTRAIR DETALHES DA MUDANÇA
+    ================================ */
+    let changeText = "Atualização na issue";
+
+    if (changelog?.items?.length) {
+      const item = changelog.items[0];
+
+      if (item.field === "status") {
+        changeText = `Status alterado: ${item.fromString} → ${item.toString}`;
+      } else {
+        changeText = `Campo "${item.field}" alterado`;
+      }
+    }
+
+    /* ==============================
+       PAYLOAD FINAL
+    ================================ */
+    const payload = {
       title: `Jira: ${issueKey}`,
-      body: `${summary || "Issue atualizada"} (${eventType})`,
+      body: changeText,
       issueKey,
-      jiraBaseUrl: "https://escolarmanager.atlassian.net",
-      url: `https://escolarmanager.atlassian.net/browse/${issueKey}`
-    });
+      jiraBaseUrl,
+      summary: issueSummary,
+      timestamp: Date.now()
+    };
 
-    res.status(200).json({ message: "Notificação enviada" });
-  } catch (error) {
-    console.error("Erro no webhook Jira:", error);
-    res.status(500).json({ error: "Erro ao processar webhook" });
+    await sendNotification(payload);
+
+    res.status(200).send("Notificação enviada");
+  } catch (err) {
+    console.error("Erro no webhook Jira:", err);
+    res.status(500).send("Erro interno");
   }
 });
 
