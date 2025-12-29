@@ -1,5 +1,5 @@
 import express from "express";
-import { sendNotification } from "../services/push.service.js";
+import { sendNotification, initWebPush } from "../services/push.service.js";
 
 const router = express.Router();
 
