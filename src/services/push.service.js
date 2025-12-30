@@ -55,9 +55,19 @@ export async function sendNotification(payload) {
     return;
   }
 
-  const subs = JSON.parse(fs.readFileSync(SUBSCRIPTIONS_FILE));
+  let subs = JSON.parse(fs.readFileSync(SUBSCRIPTIONS_FILE));
 
-  console.log("Subscriptions carregadas:", subs.length);
+  // 🔥 FILTRO CRÍTICO
+  subs = subs.filter(
+    s => s && s.endpoint && s.keys?.p256dh && s.keys?.auth
+  );
+
+  console.log("Subscriptions válidas:", subs.length);
+
+  if (!subs.length) {
+    console.log("Nenhuma subscription válida");
+    return;
+  }
 
   for (const sub of subs) {
     try {
@@ -67,6 +77,7 @@ export async function sendNotification(payload) {
     }
   }
 }
+
 
 export function removeSubscription(endpoint) {
   if (!fs.existsSync(SUBSCRIPTIONS_FILE)) return;

@@ -44,6 +44,8 @@ if (!webhookEvent || !issue) {
     console.error("Erro ao processar webhook Jira:", err);
     res.sendStatus(500);
   }
+
+  console.log("Webhook Jira recebido:", req.body?.webhookEvent);
 });
 
 /* ======================================================
