@@ -11,15 +11,13 @@ const body = req.body || {};
 
 const webhookEvent = body.webhookEvent;
 const issue = body.issue;
+const user = body.user;
+const changelog = body.changelog;
 
 if (!webhookEvent || !issue) {
   console.warn("Webhook inválido recebido");
   return res.status(400).send("Payload inválido");
 }
-
-  if (!issue) {
-    return res.status(400).send("Payload inválido");
-  }
 
   const issueKey = issue.key;
   const summary = issue.fields?.summary || "Sem resumo";
