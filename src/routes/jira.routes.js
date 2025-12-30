@@ -3,7 +3,7 @@ import { sendNotification, initWebPush } from "../services/push.service.js";
 
 const router = express.Router();
 
-router.post("/webhook", async (req, res) => {
+router.post("/", async (req, res) => {
   
   try {
   
