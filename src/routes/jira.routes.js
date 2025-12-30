@@ -13,8 +13,6 @@ router.post("/webhook", async (req, res) => {
     return res.status(400).send("Payload inválido");
   }
 
-  initWebPush();
-
   const issueKey = issue.key;
   const summary = issue.fields?.summary || "Sem resumo";
   const author = user?.displayName || "Alguém";

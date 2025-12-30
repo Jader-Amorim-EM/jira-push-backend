@@ -45,9 +45,14 @@ export function addSubscription(subscription) {
    SEND NOTIFICATION
 ================================ */
 export async function sendNotification(payload) {
-  if (!fs.existsSync(SUBSCRIPTIONS_FILE)) return;
+  if (!fs.existsSync(SUBSCRIPTIONS_FILE)) {
+    console.log("Nenhuma subscription encontrada");
+    return;
+  }
 
   const subs = JSON.parse(fs.readFileSync(SUBSCRIPTIONS_FILE));
+
+  console.log("Subscriptions carregadas:", subs.length);
 
   for (const sub of subs) {
     try {

@@ -21,7 +21,6 @@ router.post("/subscribe", (req, res) => {
    TESTE DE NOTIFICAÇÃO
 ================================ */
 router.post("/notify", async (req, res) => {
-  initWebPush();
 
   await sendNotification({
     title: "Teste Jira Notifier",

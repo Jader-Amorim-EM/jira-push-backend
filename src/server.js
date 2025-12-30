@@ -6,6 +6,9 @@ import cors from "cors";
 
 import pushRoutes from "./routes/push.routes.js";
 import jiraRoutes from "./routes/jira.routes.js";
+import { initWebPush } from "./services/push.service.js";
+
+
 
 /* ==============================
    RESOLVER PATH DA RAIZ
@@ -16,6 +19,9 @@ const __dirname = path.dirname(__filename);
 dotenv.config({
   path: path.resolve(__dirname, "../.env")
 });
+
+
+initWebPush();
 
 /* ==============================
    DEBUG (TEMPORÁRIO)
