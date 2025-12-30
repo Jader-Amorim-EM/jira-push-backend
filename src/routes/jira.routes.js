@@ -7,7 +7,15 @@ router.post("/", async (req, res) => {
   
   try {
   
-  const { webhookEvent, issue, changelog, user } = req.body;
+const body = req.body || {};
+
+const webhookEvent = body.webhookEvent;
+const issue = body.issue;
+
+if (!webhookEvent || !issue) {
+  console.warn("Webhook inválido recebido");
+  return res.status(400).send("Payload inválido");
+}
 
   if (!issue) {
     return res.status(400).send("Payload inválido");
